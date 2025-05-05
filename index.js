@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path')
 const fs=require('fs')
 require('./config/connectDB')();
+const CronJob = require('cron').CronJob;
 
 const multer = require('multer');
 
@@ -29,10 +30,19 @@ app.get('/file/:filename', (req, res) => {
   });
 });
 
+const BackUpJob = new CronJob('*/55 * * * *', () => {
+  console.log('Running backup...');
+  backupFolders()
+}, null, true, 'UTC'); 
+
+BackUpJob.start()
+
 
 let upload_file_path=path.join(__dirname,'/uploads')
+let backupAndRestoreFolder=path.join(__dirname,'../nejps-backup-folder')
 let defaultFolders=[
-    upload_file_path
+    upload_file_path,
+    backupAndRestoreFolder
 ]
   
 function createDefaultFolders(){
@@ -61,6 +71,7 @@ const storage = multer.diskStorage({
 });
 
 const apiRoute = require('./routes/api');
+const { backupFolders } = require('./backup-and-restore');
 app.use('/api', apiRoute)
 
 app.get('/api/download/:filename', (req, res) => {
@@ -82,6 +93,8 @@ app.get('/api/download/:filename', (req, res) => {
       res.status(404).send('File not found');
     }
   })
+
+
 
 
 // Start the server
