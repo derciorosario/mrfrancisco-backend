@@ -44,7 +44,6 @@ exports.listAllVolunteers = async (req, res) => {
         },
         order: [['createdAt', 'DESC']],
       };
-  
       if (search) {
         queryOptions.where = {
           ...queryOptions.search,
@@ -55,12 +54,10 @@ exports.listAllVolunteers = async (req, res) => {
           ],
         };
       }
-  
       if (all !== 'true') {
         queryOptions.offset = parseInt(offset);
         queryOptions.limit = parseInt(limit);
       }
-  
       const volunteers = await Volunteer.findAndCountAll(queryOptions);
       const total = await Volunteer.count();
   
@@ -70,6 +67,7 @@ exports.listAllVolunteers = async (req, res) => {
         page: parseInt(page),
         totalPages: Math.ceil(volunteers.count / limit),
       });
+      
     } catch (error) {
       console.error('List All Volunteers Error:', error);
       res.status(500).json({ message: 'Failed to list volunteers', error });

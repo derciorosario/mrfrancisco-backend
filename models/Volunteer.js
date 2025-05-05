@@ -12,11 +12,11 @@ const Volunteer = sequelize.define('Volunteer', {
   },
   role_pt: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   role_en: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   date_of_birth: {
     type: DataTypes.DATEONLY,
