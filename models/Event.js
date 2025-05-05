@@ -11,6 +11,14 @@ const Event = sequelize.define('Event', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  start_time: {
+    type: DataTypes.TIME,
+    allowNull: true,
+  },
+  end_time: {
+    type: DataTypes.TIME,
+    allowNull: true,
+  },
   image_filename: {
     type: DataTypes.STRING,
     allowNull: true,

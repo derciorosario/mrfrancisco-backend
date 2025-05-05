@@ -3,18 +3,17 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db'); // adjust to your database config
 
 const Donation = sequelize.define('Donation', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
+
   payment_method:{
     type: DataTypes.STRING,
     allowNull: true,
+    defaultValue:'mpesa'
   },
   date: {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
+  
   time: {
     type: DataTypes.TIME,
     allowNull: true,
@@ -26,6 +25,13 @@ const Donation = sequelize.define('Donation', {
   proof: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  donor_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    set(value) {
+      this.setDataValue('donor_id', value === "" || value === undefined ? null : value);
+    }
   },
   campaign_id: {
     type: DataTypes.INTEGER,

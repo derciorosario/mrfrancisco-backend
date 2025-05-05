@@ -25,6 +25,13 @@ const { createEvent, updateEvent, bulkDeleteEvents, listAllEvents, getEvent } = 
 const { getDashboardStats } = require('../controllers/dashboard');
 const GalleryImage = require('../models/GalleryImage');
 const Category = require('../models/Category');
+const { createPaymentMethod, updatePaymentMethod, bulkDeletePaymentMethods, getAllPaymentMethods, getPaymentMethod } = require('../controllers/payment_method');
+const { createContact, updateContact, getAllContacts, getContact, bulkDeleteContacts } = require('../controllers/contacts');
+const { createFeedback, updateFeedback, getAllFeedbacks, getFeedback, bulkDeleteFeedbacks } = require('../controllers/feedback');
+const { createNewsletter, updateNewsletter, bulkDeleteNewsletters, getAllNewsletters, getNewsletter } = require('../controllers/newsletter');
+const { getAllCategories, getCategory, bulkDeleteCategories, updateCategory, createCategory } = require('../controllers/gallery_category');
+const { bulkDeleteDonors, createDonor, updateDonor, getAllDonors, getDonor, getDonorsList } = require('../controllers/donors');
+const { createVolunteer, updateVolunteer, listAllVolunteers, getVolunteer, bulkDeleteVolunteers, joinAsVolunteer, updateVolunteerStatus } = require('../controllers/volunteer');
 
 router.post('/upload-image', _upload.single('image'), async (req, res) => {
   try {
@@ -43,7 +50,7 @@ router.post('/upload-image', _upload.single('image'), async (req, res) => {
   }
 });
 
-router.get('/images', async (req, res) => {
+router.get('/gallery', async (req, res) => {
   try {
     const images = await GalleryImage.findAll();
     res.json(images);
@@ -67,8 +74,6 @@ router.post('/add-category', async (req, res) => {
 
 router.get('/delete-image/:id', async (req, res) => {
   const { id } = req.params;
-
-
   try {
     const image = await GalleryImage.findByPk(id);
 
@@ -81,9 +86,7 @@ router.get('/delete-image/:id', async (req, res) => {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-
     await image.destroy();
-
     return res.json({ message: 'Image deleted successfully.' });
   } catch (error) {
     console.error('Error deleting image:', error);
@@ -103,6 +106,7 @@ router.get('/categories', async (req, res) => {
     res.status(500).json({ error: 'Failed to getting category.' });
   }
 });
+
 
 router.get('/categories/:id', async (req, res) => {
   
@@ -137,20 +141,61 @@ router.get('/categories/:id', async (req, res) => {
 
 });
 
+router.post('/donor', createDonor);
+router.post('/donor/:id', updateDonor);
+router.get('/donors', getAllDonors);
+router.get('/donors-list', getDonorsList);
+router.get('/donor/:id', getDonor);
+router.post('/donors/delete', bulkDeleteDonors);
+
+router.post('/volunteer', createVolunteer);
+router.post('/join-as-volunteer', joinAsVolunteer);
+router.post('/volunteer/:id', updateVolunteer);
+router.get('/volunteers', listAllVolunteers);
+router.get('/home-volunteers', listAllVolunteers);
+router.get('/volunteer/:id', getVolunteer);
+router.post('/volunteers/delete', bulkDeleteVolunteers);
+router.post('/volunteers/status',updateVolunteerStatus);
 
 
+
+router.post('/gallery-category', createCategory);
+router.post('/gallery-category/:id', updateCategory);
+router.post('/gallery-categories/delete', bulkDeleteCategories);
+router.get('/gallery-categories', getAllCategories);
+router.get('/gallery-category/:id', getCategory);
 
 router.post('/campaign', createCampaign);
 router.post('/campaign/:id', updateCampaign);
 router.post('/campaigns/delete', bulkDeleteCampaigns); 
 router.get('/campaigns/', listAllCampaigns);
+router.get('/home-campaigns/', listAllCampaigns);
 router.get('/campaign/:id', getCampaign);
 
 router.post('/event', createEvent);
 router.post('/event/:id', updateEvent);
 router.post('/events/delete', bulkDeleteEvents);
 router.get('/events', listAllEvents);
+router.get('/home-events', listAllEvents);
 router.get('/event/:id', getEvent);
+
+router.post('/contact', createContact);
+router.post('/contact/:id', updateContact);
+router.get('/contacts', getAllContacts);
+router.get('/contact/:id', getContact);
+router.post('/contacts/delete', bulkDeleteContacts);
+
+router.post('/feedback', createFeedback);
+router.post('/feedback/:id', updateFeedback);
+router.get('/feedback', getAllFeedbacks);
+router.get('/feedback/:id', getFeedback);
+router.post('/feedbacks/delete', bulkDeleteFeedbacks);
+
+router.post('/newsletter', createNewsletter);
+router.post('/newsletter/:id', updateNewsletter);
+router.post('/newsletters/delete', bulkDeleteNewsletters);
+router.get('/newsletter', getAllNewsletters);
+router.get('/newsletter/:id', getNewsletter);
 
 router.get('/dashboard', getDashboardStats)
 
@@ -159,6 +204,12 @@ router.post('/donation/:id', updateDonation);
 router.post('/donations/delete', bulkDeleteDonations);
 router.get('/donations', listAllDonations);
 router.get('/donation/:id', getDonation);
+
+router.post('/payment-method', createPaymentMethod);
+router.post('/payment-method/:id', updatePaymentMethod);
+router.post('/payment-methods/delete', bulkDeletePaymentMethods);
+router.get('/payment-methods', getAllPaymentMethods);
+router.get('/payment-method/:id', getPaymentMethod);
 
 router.get('/user', authenticateToken, getUserData);
 

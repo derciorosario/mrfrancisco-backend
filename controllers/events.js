@@ -47,10 +47,10 @@ exports.listAllEvents = async (req, res) => {
 
     let queryOptions={
       where: {},
-      order: [['createdAt', 'DESC']]
+      order: [['date', 'DESC']]
     }
 
-    if(all=="true"){
+    if(all!="true"){
       queryOptions.offset=parseInt(offset)
       queryOptions.limit=parseInt(limit)
     }

@@ -1,5 +1,6 @@
 // controllers/donationController.js
 const Donation = require('../models/Donation');
+const Donor = require('../models/Donor');
 
 exports.createDonation = async (req, res) => {
   try {
@@ -45,38 +46,76 @@ exports.bulkDeleteDonations = async (req, res) => {
   }
 };
 
+function formatDonorName(fullName) {
+  if (!fullName) return '';
+  const nameParts = fullName.trim().split(' ');
+  if (nameParts.length === 1) {
+    const name = nameParts[0];
+    const hidden = 'x'.repeat(Math.max(1, name.length - 1));
+    return `${name[0]}${hidden}`;
+  }
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+  const hiddenLastName = lastName[0] + 'x'.repeat(lastName.length - 1);
+  return `${firstName} ${hiddenLastName}`;
+}
+
 exports.listAllDonations = async (req, res) => {
   try {
-    const { page = 1, limit = 10, campaign_id,all } = req.query;
+    const { page = 1, limit = 10, campaign_id, all, h_n } = req.query;
 
     const whereClause = campaign_id ? { campaign_id } : {};
-
-
-    let queryOptions={
+    const queryOptions = {
       where: whereClause,
-      order: [['createdAt', 'DESC']]
-    }
+      order: [['date', 'DESC']],
+      include: [
+        {
+          model: Donor,
+          as: 'donor',
+        }
+      ]
+       // Changed from createdAt to date
+    };
 
-    if(all=="true"){
-      queryOptions.offset=(page - 1) * limit
-      queryOptions.limit=parseInt(limit)
+    if (all != "true") {
+      queryOptions.offset = (page - 1) * limit;
+      queryOptions.limit = parseInt(limit);
     }
 
     const donations = await Donation.findAndCountAll(queryOptions);
-    
-    let total=await Donation.count({where:whereClause})
+
+    const total = donations.count;
+
+    const { sum } = await Donation.findOne({
+      //where: whereClause,
+      attributes: [[Donation.sequelize.fn('SUM', Donation.sequelize.col('amount')), 'sum']],
+      raw: true
+    });
+
+    const formattedData = donations.rows.map(donation => {
+      const data = donation.toJSON();
+      if (h_n == 'true' && data.donor) {
+        data.donor.name = formatDonorName(data.donor.name);
+      }
+      return data;
+    });
 
     res.json({
       total,
-      pages: Math.ceil(donations.count / limit),
+      totalAmount: parseFloat(sum) || 0,
+      pages: all === "true" ? 1 : Math.ceil(total / limit),
       currentPage: parseInt(page),
-      data: donations.rows
+      data: formattedData
     });
+
   } catch (error) {
     console.error('List Donations Error:', error);
     res.status(500).json({ message: 'Failed to list donations', error });
   }
 };
+
+
+
 
 exports.getDonation = async (req, res) => {
   try {

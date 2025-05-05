@@ -23,6 +23,11 @@ const  Campaign= sequelize.define('Campaign', {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
+  status:{
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue:'in-progress'
+  },
   description_pt: {
     type: DataTypes.TEXT,
     allowNull: true,
@@ -32,7 +37,7 @@ const  Campaign= sequelize.define('Campaign', {
     allowNull: true,
   },
   goal: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.BIGINT,
     allowNull: true,
   },
   report_link: {
