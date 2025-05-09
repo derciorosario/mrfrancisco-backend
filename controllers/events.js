@@ -1,4 +1,5 @@
 // controllers/eventController.js
+const { Op } = require('sequelize');
 const Event = require('../models/Event');
 
 exports.createEvent = async (req, res) => {
@@ -46,8 +47,14 @@ exports.listAllEvents = async (req, res) => {
 
 
     let queryOptions={
-      where: {},
-      order: [['date', 'DESC']]
+      where: {  
+                [Op.or]: [
+                { title_pt: { [Op.like]: `%${search}%` } },
+                { title_en: { [Op.like]: `%${search}%` } },
+                { location: { [Op.like]: `%${search}%` } }
+      ]},
+      order: [['date', 'DESC']],
+      
     }
 
     if(all!="true"){

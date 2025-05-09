@@ -1,8 +1,8 @@
-// models/GalleryImage.js
+// models/CampaignImage.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db'); // adjust path to your Sequelize instance
 
-const GalleryImage = sequelize.define('GalleryImage', {
+const CampaignImage = sequelize.define('CampaignImage', {
   url: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -15,13 +15,13 @@ const GalleryImage = sequelize.define('GalleryImage', {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  categoryId: {
+  campaign_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
 }, {
   timestamps: true,
-  tableName: 'gallery_images',
+  tableName: 'campaign_images',
 });
 
-module.exports = GalleryImage;
+module.exports = CampaignImage;

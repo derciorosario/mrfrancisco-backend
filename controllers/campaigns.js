@@ -3,6 +3,8 @@ const Campaign = require('../models/Campaign');
 const Donation = require('../models/Donation');
 const { Op } = require('sequelize');
 const Donor = require('../models/Donor');
+const CampaignImage = require('../models/CampaignImage');
+
 
 function formatDonorName(fullName) {
   if (!fullName) return '';
@@ -27,6 +29,7 @@ exports.createCampaign = async (req, res) => {
     res.status(500).json({ message: 'Failed to create campaign', error });
   }
 };
+
 
 exports.updateCampaign = async (req, res) => {
   try {
@@ -64,9 +67,9 @@ exports.bulkDeleteCampaigns = async (req, res) => {
 };
 
 
-
 exports.listAllCampaigns = async (req, res) => {
     try {
+
       const { page = 1, limit = 10, search = '', all, h_n} = req.query;
   
       const whereClause = search ? {
@@ -91,6 +94,10 @@ exports.listAllCampaigns = async (req, res) => {
                   as: 'donor',
                 }
               ]
+            },
+            {
+              model: CampaignImage,
+              as: 'images',
             }
           ]
       }
@@ -103,8 +110,6 @@ exports.listAllCampaigns = async (req, res) => {
       const campaigns = await Campaign.findAndCountAll(queryOptions);
 
       let total=await Campaign.count({where:whereClause})
-
-
 
       const formattedData = campaigns.rows.map(c => {
 
@@ -153,6 +158,10 @@ exports.listAllCampaigns = async (req, res) => {
       const {h_n} = req.query;
       let campaign = await Campaign.findByPk(id, {
         include: [
+          {
+            model: CampaignImage,
+            as: 'images',
+          },
           { model: Donation, as: 'donations',include: [
             {
               model: Donor,
@@ -161,12 +170,11 @@ exports.listAllCampaigns = async (req, res) => {
           ] }
         ]
       });
-
      
       if (h_n == 'true') {
           campaign=campaign.toJSON();
           campaign.donations=campaign.donations.map(donation=>{
-            donation.name = donation.name ? formatDonorName(donation.name) : donation.name
+            donation.donor.name = donation.donor.name ? formatDonorName(donation.donor.name) : donation.donor.name
             return donation
           })
       }

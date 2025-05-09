@@ -2,14 +2,33 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db'); // adjust this path to your sequelize instance
 
-const  Campaign= sequelize.define('Campaign', {
+const Campaign=sequelize.define('Campaign', {
+  insert_amount_raised_manually: {
+    type: DataTypes.BOOLEAN,
+    defaultValue:false
+  },
+  raised:{
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    set(value) {
+      this.setDataValue('raised', value == "" || value == undefined ? 0 : value);
+    }
+  },
   title_pt: {
     type: DataTypes.STRING,
     allowNull: false,
   },
   title_en: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
+  },
+  goal_pt: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  goal_en: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   image_filename: {
     type: DataTypes.STRING,
@@ -39,6 +58,9 @@ const  Campaign= sequelize.define('Campaign', {
   goal: {
     type: DataTypes.BIGINT,
     allowNull: true,
+    set(value) {
+      this.setDataValue('goal', value == "" || value == undefined ? 0 : value);
+    }
   },
   report_link: {
     type: DataTypes.STRING,
@@ -54,8 +76,12 @@ const  Campaign= sequelize.define('Campaign', {
 });
 
 const Donation = require('./Donation');
+const CampaignImage = require('./CampaignImage');
 Campaign.hasMany(Donation, { foreignKey: 'campaign_id', as: 'donations' });
 Donation.belongsTo(Campaign, { foreignKey: 'campaign_id', as: 'campaign' });
+
+Campaign.hasMany(CampaignImage, { foreignKey: 'Campaign_id', as: 'images' });
+CampaignImage.belongsTo(Campaign, { foreignKey: 'Campaign_id', as: 'Campaign' });
 
 
 module.exports = Campaign;
