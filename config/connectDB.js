@@ -1,15 +1,20 @@
 require('dotenv').config(); 
 const { restoreFolders } = require('../backup-and-restore');
+const { createDefaultSettings } = require('../controllers/settings');
+const CampaignImage = require('../models/CampaignImage');
 const User = require('../models/user');
 const sequelize = require('./db')
 const bcrypt = require('bcrypt');
 
+
 async function startServer() {
+ 
   try {
     await sequelize.authenticate();
     console.log('Connection has been established successfully.');
     createAdminUser()
-    restoreFolders()
+    createDefaultSettings()
+    restoreFolders()    
     await sequelize.sync()
   } catch (error) {
     console.error('Unable to connect to the database:', error);

@@ -34,6 +34,7 @@ const { bulkDeleteDonors, createDonor, updateDonor, getAllDonors, getDonor, getD
 const { createVolunteer, updateVolunteer, listAllVolunteers, getVolunteer, bulkDeleteVolunteers, joinAsVolunteer, updateVolunteerStatus } = require('../controllers/volunteer');
 const Campaign = require('../models/Campaign');
 const CampaignImage = require('../models/CampaignImage');
+const { getSetting, upsertSetting } = require('../controllers/settings');
 
 router.post('/upload-image', _upload.single('image'), async (req, res) => {
   try {
@@ -57,18 +58,13 @@ router.post('/upload-campaign-image', _upload.single('image'), async (req, res) 
   try {
 
     console.log({aaaaaaaa:req.file})
-
     const { campaign_id } = req.body;
     const imageUrl = `${req.file.filename}`;
-
     const newImage = await CampaignImage.create({
       url: imageUrl,
       campaign_id,
     });
-
     res.json({ url: imageUrl, id: newImage.id,campaign_id});
-
-    res.json();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Image upload failed.' });
@@ -77,9 +73,7 @@ router.post('/upload-campaign-image', _upload.single('image'), async (req, res) 
 
 
 router.get('/campaign-images/:id', async (req, res) => {
-  
   const id = parseInt(req.params.id);
-  
   try {
     const campaign = await Campaign.findByPk(id);
     if (!campaign) {
@@ -106,11 +100,8 @@ router.get('/gallery', async (req, res) => {
 });
 
 
-
-
 // Editar o título de uma imagem específica
 router.post('/update-campaign-image-title/:id', async (req, res) => {
-
   const id = parseInt(req.params.id);
   const { title_en,title_pt } = req.body;
   try {
@@ -132,7 +123,6 @@ router.post('/update-campaign-image-title/:id', async (req, res) => {
 // Editar o título de uma imagem específica
 router.post('/update-image-title', async (req, res) => {
   const { title_en,title_pt, id } = req.body;
-
   try {
     const image = await GalleryImage.findByPk(id);
     if (!image) {
@@ -141,7 +131,6 @@ router.post('/update-image-title', async (req, res) => {
     image.title_en = title_en;
     image.title_pt = title_pt;
     await image.save();
-
     res.json({ message: 'Title updated successfully.', image });
   } catch (error) {
     console.error(error);
@@ -151,7 +140,6 @@ router.post('/update-image-title', async (req, res) => {
 
 
 router.post('/add-category', async (req, res) => {
-
   try {
     const { name_pt,name_en } = req.body;
     const newCategory = await Category.create({ name_pt,name_en });
@@ -172,9 +160,7 @@ router.post('/delete-campaign-image/:id', async (req, res) => {
     if (!image) {
       return res.status(404).json({ message: 'Image not found.' });
     }
-
     const filePath = path.join(__dirname, '..', 'uploads', image.url);
-
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -193,13 +179,10 @@ router.get('/delete-image/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const image = await GalleryImage.findByPk(id);
-
     if (!image) {
       return res.status(404).json({ message: 'Image not found.' });
     }
-
     const filePath = path.join(__dirname, '..', 'uploads', image.url);
-
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -209,7 +192,6 @@ router.get('/delete-image/:id', async (req, res) => {
     console.error('Error deleting image:', error);
     return res.status(500).json({ message: 'Failed to delete image.' });
   }
-
 });
 
 
@@ -226,7 +208,6 @@ router.get('/categories', async (req, res) => {
 
 
 router.get('/categories/:id', async (req, res) => {
-  
   const id = parseInt(req.params.id);
 
   try {
@@ -248,7 +229,6 @@ router.get('/categories/:id', async (req, res) => {
     await GalleryImage.destroy({ where: { categoryId: id } });
 
     await category.destroy();
-
     res.json({ message: 'Category and associated images deleted successfully' });
 
   } catch (error) {
@@ -274,7 +254,8 @@ router.get('/volunteer/:id', getVolunteer);
 router.post('/volunteers/delete', bulkDeleteVolunteers);
 router.post('/volunteers/status',updateVolunteerStatus);
 
-
+router.get('/settings',getSetting);
+router.post('/settings',upsertSetting);
 
 router.post('/gallery-category', createCategory);
 router.post('/gallery-category/:id', updateCategory);

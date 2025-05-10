@@ -80,8 +80,8 @@ const CampaignImage = require('./CampaignImage');
 Campaign.hasMany(Donation, { foreignKey: 'campaign_id', as: 'donations' });
 Donation.belongsTo(Campaign, { foreignKey: 'campaign_id', as: 'campaign' });
 
-Campaign.hasMany(CampaignImage, { foreignKey: 'Campaign_id', as: 'images' });
-CampaignImage.belongsTo(Campaign, { foreignKey: 'Campaign_id', as: 'Campaign' });
+Campaign.hasMany(CampaignImage, { foreignKey: 'campaign_id', as: 'images' });
+CampaignImage.belongsTo(Campaign, { foreignKey: 'campaign_id', as: 'Campaign' });
 
 
 module.exports = Campaign;
