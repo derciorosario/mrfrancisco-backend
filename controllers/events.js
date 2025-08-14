@@ -46,13 +46,15 @@ exports.listAllEvents = async (req, res) => {
     const offset = (page - 1) * limit;
 
 
-    let queryOptions={
-      where: {  
+    let filters= {  
                 [Op.or]: [
                 { title_pt: { [Op.like]: `%${search}%` } },
                 { title_en: { [Op.like]: `%${search}%` } },
                 { location: { [Op.like]: `%${search}%` } }
-      ]},
+    ]}
+
+    let queryOptions={
+      where:filters,
       order: [['date', 'DESC']],
       
     }
@@ -64,13 +66,13 @@ exports.listAllEvents = async (req, res) => {
 
     const events = await Event.findAndCountAll(queryOptions);
 
-     let total=await Event.count()
+     let total=await Event.count({where:filters})
 
     res.json({
       data: events.rows,
       total,
       page: parseInt(page),
-      totalPages: Math.ceil(events.count / limit)
+      totalPages: Math.ceil(total / limit)
     });
   } catch (error) {
     console.error('List All Events Error:', error);

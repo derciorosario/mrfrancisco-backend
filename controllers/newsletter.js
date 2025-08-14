@@ -64,7 +64,7 @@ exports.getAllNewsletters = async (req, res) => {
         data: newsletters.rows,
         total,
         page: parseInt(page),
-        totalPages: Math.ceil(newsletters.count / limit),
+        totalPages: Math.ceil(total / limit),
       });
     } catch (error) {
       console.error('Get All Newsletters Error:', error);

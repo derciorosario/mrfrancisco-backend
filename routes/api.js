@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path')
+const path = require('path');
 const fs = require('fs');
 
 const storage = multer.diskStorage({
@@ -10,11 +10,11 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
   	const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, uniqueSuffix + " - "+file.originalname)
+    cb(null, uniqueSuffix + "-"+file.originalname)
   }
 })
 
-const _upload = multer({ storage: storage, limits: { fileSize: 5000000 } });
+const _upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 const { upload } = require('../controllers/upload')
 router.post('/upload',_upload.single('file'), upload);
 const authenticateToken = require('../middleware/authenticateToken');
@@ -35,6 +35,125 @@ const { createVolunteer, updateVolunteer, listAllVolunteers, getVolunteer, bulkD
 const Campaign = require('../models/Campaign');
 const CampaignImage = require('../models/CampaignImage');
 const { getSetting, upsertSetting } = require('../controllers/settings');
+const Audio = require('../models/Audio');
+const { getAllHomilies, getHomilyById, createHomily, updateHomily, deleteHomily } = require('../controllers/homilies');
+const { Op } = require('sequelize');
+
+router.get('/audios', async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    const whereCondition = {};
+    if (search) {
+      whereCondition[Op.or] = [
+        { title_pt: { [Op.like]: `%${search}%` } },
+        { title_en: { [Op.like]: `%${search}%` } },
+        { description_pt: { [Op.like]: `%${search}%` } },
+        { description_en: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    const { count, rows } = await Audio.findAndCountAll({
+      where: whereCondition,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['display_date', 'DESC']]
+    });
+
+    res.json({
+      data: rows,
+      total: count,
+      page: parseInt(page),
+      totalPages: Math.ceil(count / limit)
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get single audio
+router.get('/audios/:id', async (req, res) => {
+  try {
+    const audio = await Audio.findByPk(req.params.id);
+    if (!audio) return res.status(404).json({ message: 'Audio not found' });
+    res.json(audio);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create new audio
+router.post('/audios', _upload.single('audio'), async (req, res) => {
+  try {
+    const { title_pt, title_en, description_pt, description_en, display_date } = req.body;
+    const file = req.file;
+
+    const audio = await Audio.create({
+      title_pt,
+      title_en,
+      description_pt,
+      description_en,
+      display_date,
+      filename: file.filename,
+      filepath: `/uploads/audios/${file.filename}`,
+      size: file.size,
+      format: path.extname(file.originalname).slice(1)
+    });
+
+    res.status(201).json(audio);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update audio
+router.put('/audios/:id', _upload.single('audio'), async (req, res) => {
+  try {
+    const audio = await Audio.findByPk(req.params.id);
+    if (!audio) return res.status(404).json({ message: 'Audio not found' });
+
+    const { title_pt, title_en, description_pt, description_en,display_date } = req.body;
+    const file = req.file;
+
+    const updateData = {
+      title_pt,
+      title_en,
+      description_pt,
+      description_en,
+      display_date
+    };
+
+    if (file) {
+      updateData.filename = file.filename;
+      updateData.filepath = `/uploads/audios/${file.filename}`;
+      updateData.size = file.size;
+      updateData.format = path.extname(file.originalname).slice(1);
+    }
+
+    await audio.update(updateData);
+    res.json(audio);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete audio
+router.delete('/audios/:id', async (req, res) => {
+  try {
+    const audio = await Audio.findByPk(req.params.id);
+    if (!audio) return res.status(404).json({ message: 'Audio not found' });
+
+    // Here you might want to also delete the physical file
+    // fs.unlinkSync(path.join(__dirname, '../public', audio.filepath));
+
+    await audio.destroy();
+    res.json({ message: 'Audio deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 router.post('/upload-image', _upload.single('image'), async (req, res) => {
   try {
@@ -308,6 +427,12 @@ router.post('/payment-method/:id', updatePaymentMethod);
 router.post('/payment-methods/delete', bulkDeletePaymentMethods);
 router.get('/payment-methods', getAllPaymentMethods);
 router.get('/payment-method/:id', getPaymentMethod);
+
+router.get('/homilies', getAllHomilies);
+router.get('/homilies/:id', getHomilyById);
+router.post('/homilies', createHomily);
+router.put('/homilies/:id', updateHomily);
+router.delete('/homilies/:id', deleteHomily);
 
 router.get('/user', authenticateToken, getUserData);
 

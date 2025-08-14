@@ -41,7 +41,7 @@ exports.getAllPaymentMethods = async (req, res) => {
       data: methods.rows,
       total,
       page: parseInt(page),
-      totalPages: Math.ceil(methods.count / limit),
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     console.error('Get All PaymentMethods Error:', error);

@@ -45,7 +45,7 @@ exports.getAllFeedbacks = async (req, res) => {
         data: feedbacks.rows,
         total,
         page: parseInt(page),
-        totalPages: Math.ceil(feedbacks.count / limit),
+        totalPages: Math.ceil(total / limit),
       });
     } catch (error) {
       console.error('Get All Feedbacks Error:', error);

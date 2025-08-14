@@ -130,8 +130,10 @@ exports.listAllCampaigns = async (req, res) => {
 
         if (h_n == 'true') {
             data.donations.map(donation=>{
-              donation.donor.name = donation.donor.name ? formatDonorName(donation.donor.name) : donation.donor.name
-              return donation
+              if(donation.donor){
+                  donation.donor.name = donation.donor.name ? formatDonorName(donation.donor.name) : donation.donor.name
+              }
+               return donation
             })
         }
 
@@ -141,7 +143,7 @@ exports.listAllCampaigns = async (req, res) => {
 
       res.json({
         total,
-        pages: Math.ceil(campaigns.count / limit),
+        pages: Math.ceil(total / limit),
         currentPage: parseInt(page),
         data: formattedData
       });
@@ -174,7 +176,9 @@ exports.listAllCampaigns = async (req, res) => {
       if (h_n == 'true') {
           campaign=campaign.toJSON();
           campaign.donations=campaign.donations.map(donation=>{
-            donation.donor.name = donation.donor.name ? formatDonorName(donation.donor.name) : donation.donor.name
+            if(donation.donor){
+              donation.donor.name = donation.donor.name ? formatDonorName(donation.donor.name) : donation.donor.name
+            }
             return donation
           })
       }

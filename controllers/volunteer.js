@@ -1,6 +1,5 @@
 const { Op } = require('sequelize');
 const Volunteer = require('../models/Volunteer');
-
 exports.createVolunteer = async (req, res) => {
   try {
     const volunteer = await Volunteer.create(req.body);
@@ -19,9 +18,10 @@ exports.joinAsVolunteer = async (req, res) => {
       console.error('Create Volunteer Error:', error);
       res.status(500).json({ message: 'Failed to create volunteer', error });
     }
-  };
+};
 
 exports.updateVolunteer = async (req, res) => {
+
   try {
     const volunteer = await Volunteer.findByPk(req.params.id);
     if (!volunteer) return res.status(404).json({ message: 'Volunteer not found' });
@@ -31,6 +31,7 @@ exports.updateVolunteer = async (req, res) => {
     console.error('Update Volunteer Error:', error);
     res.status(500).json({ message: 'Failed to update volunteer', error });
   }
+  
 };
 
 exports.listAllVolunteers = async (req, res) => {
@@ -38,10 +39,11 @@ exports.listAllVolunteers = async (req, res) => {
       const { page = 1, limit = 10, search = '', all,status } = req.query;
       const offset = (page - 1) * limit;
   
-      let queryOptions = {
-        where: {
+      let filters= {
             ...(status && { status: { [Op.in]: status.split(",") } }),
-        },
+      }
+      let queryOptions = {
+        where:filters,
         order: [['createdAt', 'DESC']],
       };
       if (search) {
@@ -59,13 +61,13 @@ exports.listAllVolunteers = async (req, res) => {
         queryOptions.limit = parseInt(limit);
       }
       const volunteers = await Volunteer.findAndCountAll(queryOptions);
-      const total = await Volunteer.count();
+      const total = await Volunteer.count({where:filters});
   
       res.json({
         data: volunteers.rows,
         total,
         page: parseInt(page),
-        totalPages: Math.ceil(volunteers.count / limit),
+        totalPages: Math.ceil(total / limit),
       });
       
     } catch (error) {

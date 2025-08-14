@@ -65,7 +65,7 @@ exports.getAllDonors = async (req, res) => {
   
       const donors = await Donor.findAndCountAll(queryOptions);
 
-      let total=await Donor.count(filters);
+      let total=await Donor.count({where:filters});
   
       // Add totalAmount per donor and calculate total of all
       let totalDonationAmount = 0;
@@ -85,7 +85,7 @@ exports.getAllDonors = async (req, res) => {
         total,
         totalDonationAmount,
         page: parseInt(page),
-        totalPages: Math.ceil(donors.count / limit),
+        totalPages: Math.ceil(total / limit),
       });
   
     } catch (error) {

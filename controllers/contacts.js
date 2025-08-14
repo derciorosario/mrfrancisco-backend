@@ -45,7 +45,7 @@ exports.getAllContacts = async (req, res) => {
         data: contacts.rows,
         total,
         page: parseInt(page),
-        totalPages: Math.ceil(contacts.count / limit),
+        totalPages: Math.ceil(total / limit),
       });
     } catch (error) {
       console.error('Get All Contacts Error:', error);

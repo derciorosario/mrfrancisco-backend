@@ -95,7 +95,11 @@ exports.listAllDonations = async (req, res) => {
     const formattedData = donations.rows.map(donation => {
       const data = donation.toJSON();
       if (h_n == 'true' && data.donor) {
-        data.donor.name = formatDonorName(data.donor.name);
+         try{
+          data.donor.name = formatDonorName(data.donor.name);
+         }catch(e){
+          
+         }
       }
       return data;
     });
@@ -113,8 +117,6 @@ exports.listAllDonations = async (req, res) => {
     res.status(500).json({ message: 'Failed to list donations', error });
   }
 };
-
-
 
 
 exports.getDonation = async (req, res) => {

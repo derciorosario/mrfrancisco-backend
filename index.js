@@ -17,7 +17,8 @@ app.use(cors());
 
 // Middleware to parse JSON requests
 app.use(bodyParser.json());
-
+app.use(express.json({ limit: '50mb' })); 
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const folderPath = path.join(__dirname, 'uploads');
 app.get('/file/:filename', (req, res) => {
@@ -30,7 +31,56 @@ app.get('/file/:filename', (req, res) => {
   });
 });
 
-const BackUpJob = new CronJob('*/55 * * * *', () => {
+
+
+
+app.get('/audio/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    
+    // Validate filename to prevent directory traversal
+    if (!/^[a-zA-Z0-9\-_\.]+$/.test(filename)) {
+      return res.status(400).send('Invalid filename');
+    }
+    
+    const filePath = path.join(folderPath, filename);
+    
+    // Check if file exists
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          return res.status(404).send('File not found');
+        }
+        return res.status(500).send('Server error');
+      }
+      
+      // Set proper headers for audio
+      res.set({
+        'Content-Type': 'audio/mpeg', // Adjust based on your audio format
+        'Content-Length': stats.size,
+        'Accept-Ranges': 'bytes'
+      });
+      
+      // Create read stream
+      const stream = fs.createReadStream(filePath);
+      
+      stream.on('error', (err) => {
+        console.error('Stream error:', err);
+        if (!res.headersSent) {
+          return res.status(500).send('Stream error');
+        }
+      });
+      
+      stream.pipe(res);
+    });
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+
+const BackUpJob = new CronJob('*/1 * * * *', () => {
   console.log('Running backup...');
   backupFolders()
 }, null, true, 'UTC'); 
